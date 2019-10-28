@@ -3,6 +3,8 @@ version: 1.0
 api-version: 1.14
 main: dev.tycho.DiscordRoleSync.DiscordRoleSync
 author: TychoVI
+depend:
+  - LuckPerms
 commands:
   dc:
     description: Main command for DiscordRoleSync

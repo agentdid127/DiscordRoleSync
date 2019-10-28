@@ -37,17 +37,22 @@ public class CommandDc implements CommandExecutor {
                 return;
             }
 
-            if(!DiscordRoleSync.linkQueue.containsKey(args[1])) {
-                player.sendMessage(ChatColor.RED + "Discord user " + args[1] + " was not found trying to link with your mc account. Make sure you type !link <mcname> first in the #mc-linking channel!");
+            String providedTag = args[1];
+            for(int i = 2; i < args.length; i++) {
+                providedTag = providedTag + " " + args[i];
+            }
+
+            if(!DiscordRoleSync.linkQueue.containsKey(providedTag)) {
+                player.sendMessage(ChatColor.RED + "Discord user " + providedTag + " was not found trying to link with your mc account. Make sure you type !link <mcname> first in the #mc-linking channel!");
                 return;
             }
 
-            if(!DiscordRoleSync.linkQueue.get(args[1]).equals(player.getUniqueId())) {
+            if(!DiscordRoleSync.linkQueue.get(providedTag).equals(player.getUniqueId())) {
                 player.sendMessage(ChatColor.RED + "That discord user did not try to link with your account!");
                 return;
             }
 
-            Link link = new Link(DiscordRoleSync.jda.getUserByTag(args[1]).getId(), player.getUniqueId());
+            Link link = new Link(DiscordRoleSync.jda.getUserByTag(providedTag).getId(), player.getUniqueId());
             try {
                 DiscordRoleSync.linkDao.create(link);
             } catch (SQLException e) {
@@ -58,7 +63,7 @@ public class CommandDc implements CommandExecutor {
 
             DiscordRoleSync.permsApi.getUser(player.getUniqueId()).setPermission(groupPermission);
 
-            DiscordRoleSync.linkQueue.remove(args[1]);
+            DiscordRoleSync.linkQueue.remove(providedTag);
 
             player.sendMessage(ChatColor.GREEN + "Link successful!");
         }).execute();
