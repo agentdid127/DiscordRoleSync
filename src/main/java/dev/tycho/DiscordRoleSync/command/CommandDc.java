@@ -32,7 +32,7 @@ public class CommandDc implements CommandExecutor {
 
             Player player = (Player) sender;
 
-            if(args.length != 2) {
+            if(!(args.length > 1)) {
                 player.sendMessage(ChatColor.RED + "Incorrect usage! Should be: /dc link <discordtag>");
                 return;
             }
