@@ -1,0 +1,10 @@
+token: TOKENHERE
+linkingChannel: channelIDHERE
+linkGroup: member
+mysql:
+  host: HOST
+  port: 3306
+  database: DATABASE
+  username: USERNAME
+  password: PASSWORD
+  ssl: false

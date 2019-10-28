@@ -1,0 +1,36 @@
+plugins {
+    id 'java'
+    id 'idea'
+    id "com.github.johnrengelman.shadow" version "5.1.0"
+}
+
+group 'dev.tycho'
+version '1.0'
+
+sourceCompatibility = 1.8
+
+repositories {
+    mavenCentral()
+    jcenter()
+    maven { url 'https://jitpack.io' }
+    maven { url 'https://repo.aikar.co/content/groups/aikar/' }
+    maven { url 'https://hub.spigotmc.org/nexus/content/repositories/snapshots' }
+}
+
+dependencies {
+    compileOnly "org.spigotmc:spigot-api:1.14.4-R0.1-SNAPSHOT"
+    compile 'co.aikar:taskchain-bukkit:3.7.2'
+    compile 'me.lucko.luckperms:luckperms-api:4.4'
+    compile ('net.dv8tion:JDA:4.0.0_54') {
+        exclude module: 'opus-java'
+    }
+    compile 'com.fasterxml.jackson.core:jackson-databind:2.10.0'
+    compile "com.j256.ormlite:ormlite-core:5.1"
+    compile "com.j256.ormlite:ormlite-jdbc:5.1"
+}
+
+compileJava.options.encoding = 'UTF-8'
+
+tasks.withType(JavaCompile) {
+    options.encoding = 'UTF-8'
+}
