@@ -3,6 +3,9 @@ package dev.tycho.DiscordRoleSync.listener;
 import com.j256.ormlite.stmt.QueryBuilder;
 import dev.tycho.DiscordRoleSync.DiscordRoleSync;
 import dev.tycho.DiscordRoleSync.database.Link;
+import net.dv8tion.jda.api.MessageBuilder;
+import net.dv8tion.jda.api.entities.Message;
+import net.dv8tion.jda.api.entities.MessageType;
 import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import org.bukkit.Bukkit;
@@ -50,7 +53,14 @@ public class messageListener extends ListenerAdapter {
         Player player = Bukkit.getPlayer(providedName);
 
         if(player == null) {
-            event.getChannel().sendMessage("That is not a valid username! Make sure you're online on the server and that you've typed your name correctly").queue();
+            MessageBuilder messageBuilder = new MessageBuilder();
+
+            messageBuilder.append("You must be online on the MC server to link your account!", MessageBuilder.Formatting.BOLD);
+            messageBuilder.append(" Join the server (IP in ");
+            messageBuilder.append(event.getGuild().getTextChannelById(plugin.getConfig().getString("serverInfoChannel")).getAsMention());
+            messageBuilder.append(" ) and link here in this channel");
+
+            event.getChannel().sendMessage(messageBuilder.build()).queue();
             return;
         }
 

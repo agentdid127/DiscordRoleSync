@@ -1,6 +1,7 @@
 token: TOKENHERE
 linkingChannel: channelIDHERE
 linkGroup: member
+serverInfoChannel: channelIDHERE
 mysql:
   host: HOST
   port: 3306
