@@ -12,15 +12,16 @@ sourceCompatibility = 1.8
 repositories {
     mavenCentral()
     jcenter()
-    maven { url 'https://jitpack.io' }
-    maven { url 'https://repo.aikar.co/content/groups/aikar/' }
-    maven { url 'https://hub.spigotmc.org/nexus/content/repositories/snapshots' }
+    maven { url 'http://jitpack.io' }
+    maven { url 'http://repo.aikar.co/content/groups/aikar/' }
+    maven { url 'http://hub.spigotmc.org/nexus/content/repositories/snapshots' }
+    maven { url 'https://repo.moep.tv/' }
 }
 
 dependencies {
-    compileOnly "org.spigotmc:spigot-api:1.14.4-R0.1-SNAPSHOT"
+    compileOnly "org.spigotmc:spigot-api:1.15.2-R0.1-SNAPSHOT"
     compile 'co.aikar:taskchain-bukkit:3.7.2'
-    compile 'me.lucko.luckperms:luckperms-api:4.4'
+    compile 'net.luckperms:api:5.0'
     compile ('net.dv8tion:JDA:4.0.0_54') {
         exclude module: 'opus-java'
     }

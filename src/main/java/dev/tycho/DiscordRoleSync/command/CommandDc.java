@@ -2,9 +2,9 @@ package dev.tycho.DiscordRoleSync.command;
 
 import dev.tycho.DiscordRoleSync.DiscordRoleSync;
 import dev.tycho.DiscordRoleSync.database.Link;
-import me.lucko.luckperms.api.LocalizedNode;
-import me.lucko.luckperms.api.Node;
-import me.lucko.luckperms.api.User;
+
+import net.luckperms.api.model.user.User;
+import net.luckperms.api.node.Node;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -60,10 +60,9 @@ public class CommandDc implements CommandExecutor {
                 e.printStackTrace();
             }
 
-            Node groupPermission = DiscordRoleSync.permsApi.getNodeFactory().newBuilder("group." + plugin.getConfig().getString("linkGroup")).build();
-            User user = DiscordRoleSync.permsApi.getUser(player.getUniqueId());
-
-            user.setPermission(groupPermission);
+            Node groupPermission = Node.builder("group." + plugin.getConfig().getString("linkGroup")).build();
+            User user = DiscordRoleSync.permsApi.getUserManager().getUser(player.getUniqueId());
+            user.data().add(groupPermission);
             DiscordRoleSync.permsApi.getUserManager().saveUser(user);
 
             DiscordRoleSync.linkQueue.remove(providedTag);

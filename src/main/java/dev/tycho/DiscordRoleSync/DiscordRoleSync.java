@@ -11,11 +11,11 @@ import com.j256.ormlite.support.ConnectionSource;
 import com.j256.ormlite.table.TableUtils;
 import dev.tycho.DiscordRoleSync.command.CommandDc;
 import dev.tycho.DiscordRoleSync.database.Link;
-import dev.tycho.DiscordRoleSync.listener.RoleChangeListener;
 import dev.tycho.DiscordRoleSync.listener.messageListener;
-import me.lucko.luckperms.api.LuckPermsApi;
+
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
+import net.luckperms.api.LuckPerms;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -28,7 +28,7 @@ import java.util.UUID;
 
 public class DiscordRoleSync extends JavaPlugin {
 
-    public static LuckPermsApi permsApi;
+    public static LuckPerms permsApi;
     public static JDA jda;
     static List<String> roles;
 
@@ -69,7 +69,7 @@ public class DiscordRoleSync extends JavaPlugin {
 
         roles = getConfig().getStringList("roles");
 
-        RegisteredServiceProvider<LuckPermsApi> provider = Bukkit.getServicesManager().getRegistration(LuckPermsApi.class);
+        RegisteredServiceProvider<LuckPerms> provider = Bukkit.getServicesManager().getRegistration(LuckPerms.class);
         if (provider != null) {
             permsApi = provider.getProvider();
 
