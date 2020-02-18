@@ -92,17 +92,14 @@ public class DiscordRoleSync extends JavaPlugin {
     private void checkForJda() throws NullPointerException {
         if (jda != null) return;
         if (!DiscordSRV.isReady) {
-            System.out.println("DiscordSRV still not ready.");
             Bukkit.getScheduler().runTaskLater(this, this::checkForJda, 20);
             return;
         }
         jda = DiscordSRV.getPlugin().getJda();
         if (jda == null) {
-            System.out.println("Still no JDA instance. Trying again later.");
             Bukkit.getScheduler().runTaskLater(this, this::checkForJda, 20);
             return;
         }
-        System.out.println("Got a JDA instance.");
         jda.addEventListener(new messageListener(this));
         this.getCommand("dc").setExecutor(new CommandDc(this));
     }
