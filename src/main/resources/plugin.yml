@@ -5,6 +5,7 @@ main: dev.tycho.DiscordRoleSync.DiscordRoleSync
 author: TychoVI
 depend:
   - LuckPerms
+  - DiscordSRV
 commands:
   dc:
     description: Main command for DiscordRoleSync

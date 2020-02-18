@@ -13,8 +13,10 @@ import dev.tycho.DiscordRoleSync.command.CommandDc;
 import dev.tycho.DiscordRoleSync.database.Link;
 import dev.tycho.DiscordRoleSync.listener.messageListener;
 
-import net.dv8tion.jda.api.JDA;
-import net.dv8tion.jda.api.JDABuilder;
+import github.scarsz.discordsrv.DiscordSRV;
+//import net.dv8tion.jda.api.JDA;
+//import net.dv8tion.jda.api.JDABuilder;
+import github.scarsz.discordsrv.dependencies.jda.api.JDA;
 import net.luckperms.api.LuckPerms;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.RegisteredServiceProvider;
@@ -75,18 +77,36 @@ public class DiscordRoleSync extends JavaPlugin {
 
         }
 
-        try {
-             jda = new JDABuilder(this.getConfig().getString("token"))
-                    //.addEventListeners(new RoleChangeListener())
-                     .addEventListeners(new messageListener(this))
-                    .build();
-        } catch (LoginException e) {
-            e.printStackTrace();
-        }
-
-        this.getCommand("dc").setExecutor(new CommandDc(this));
-
+//        try {
+//             jda = new JDABuilder(this.getConfig().getString("token"))
+//                    //.addEventListeners(new RoleChangeListener())
+//                     .addEventListeners(new messageListener(this))
+//                    .build();
+//        } catch (LoginException e) {
+//            e.printStackTrace();
+//        }
+        checkForJda();
     }
+
+    // Run once a second to wait for DiscordSRV to be ready so we can grab an instance from it.
+    private void checkForJda() throws NullPointerException {
+        if (jda != null) return;
+        if (!DiscordSRV.isReady) {
+            System.out.println("DiscordSRV still not ready.");
+            Bukkit.getScheduler().runTaskLater(this, this::checkForJda, 20);
+            return;
+        }
+        jda = DiscordSRV.getPlugin().getJda();
+        if (jda == null) {
+            System.out.println("Still no JDA instance. Trying again later.");
+            Bukkit.getScheduler().runTaskLater(this, this::checkForJda, 20);
+            return;
+        }
+        System.out.println("Got a JDA instance.");
+        jda.addEventListener(new messageListener(this));
+        this.getCommand("dc").setExecutor(new CommandDc(this));
+    }
+
     @Override
     public void onDisable() {
 
