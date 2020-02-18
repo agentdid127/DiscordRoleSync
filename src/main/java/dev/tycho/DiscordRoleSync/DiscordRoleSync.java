@@ -14,8 +14,6 @@ import dev.tycho.DiscordRoleSync.database.Link;
 import dev.tycho.DiscordRoleSync.listener.messageListener;
 
 import github.scarsz.discordsrv.DiscordSRV;
-//import net.dv8tion.jda.api.JDA;
-//import net.dv8tion.jda.api.JDABuilder;
 import github.scarsz.discordsrv.dependencies.jda.api.JDA;
 import net.luckperms.api.LuckPerms;
 import org.bukkit.Bukkit;
@@ -77,15 +75,8 @@ public class DiscordRoleSync extends JavaPlugin {
 
         }
 
-//        try {
-//             jda = new JDABuilder(this.getConfig().getString("token"))
-//                    //.addEventListeners(new RoleChangeListener())
-//                     .addEventListeners(new messageListener(this))
-//                    .build();
-//        } catch (LoginException e) {
-//            e.printStackTrace();
-//        }
         checkForJda();
+        this.getCommand("dc").setExecutor(new CommandDc(this));
     }
 
     // Run once a second to wait for DiscordSRV to be ready so we can grab an instance from it.
@@ -101,7 +92,6 @@ public class DiscordRoleSync extends JavaPlugin {
             return;
         }
         jda.addEventListener(new messageListener(this));
-        this.getCommand("dc").setExecutor(new CommandDc(this));
     }
 
     @Override
