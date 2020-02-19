@@ -1,36 +1,39 @@
 package dev.tycho.DiscordRoleSync.listener;
 
+import dev.tycho.DiscordRoleSync.DiscordRoleSync;
+import github.scarsz.discordsrv.DiscordSRV;
+import github.scarsz.discordsrv.dependencies.jda.api.events.GenericEvent;
+import github.scarsz.discordsrv.dependencies.jda.api.hooks.EventListener;
 import net.dv8tion.jda.api.events.guild.member.GuildMemberRoleAddEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
+import org.bukkit.entity.Player;
 
 import javax.annotation.Nonnull;
+import java.util.UUID;
 
-public class RoleChangeListener extends ListenerAdapter {
+public class RoleChangeListener extends ListenerAdapter implements EventListener {
+    private final DiscordRoleSync plugin;
+
+    public RoleChangeListener(DiscordRoleSync plugin) {
+        plugin.getLogger().info("Role change listener initialized");
+        this.plugin = plugin;
+    }
     @Override
     public void onGuildMemberRoleAdd(@Nonnull GuildMemberRoleAddEvent event) {
-//        DiscordRoleSync.newChain().asyncFirst(() -> {
-//            String command = "";
-//            outerLoop:
-//            for (Role role: event.getRoles()) {
-//                for(int i = 0; i < DiscordRoleSync.roles.size(); i++) {
-//                    if(role.getId().equals(DiscordRoleSync.roles.get(i))) {
-//
-//                        List<Link> linkList = null;
-//                        try {
-//                            Member member =  event.getMember();
-//                            linkList = DiscordRoleSync.linkDao.queryForEq("discordId", member.getId());
-//
-//                            if(linkList.size() > 0) {
-//                                command = "lp user " + Bukkit.getOfflinePlayer(linkList.get(0).getUuid()).getName() + " parent set " + DiscordRoleSync.roles.get(i - 1);
-//                            }
-//                        } catch (SQLException e) {
-//                            e.printStackTrace();
-//                        }
-//                        break outerLoop;
-//                    }
-//                }
-//            }
-//            return command;
-//        }).sync(command -> Bukkit.getServer().dispatchCommand(Bukkit.getConsoleSender(), command)).execute();
+        plugin.getLogger().info("Guild member " + event.getMember().getUser().getName() + " got " +
+                "a role update - resyncing groups...");
+        UUID playerId = DiscordSRV.getPlugin()
+                                .getAccountLinkManager()
+                                .getUuid(event.getMember().getId());
+        plugin.syncRoles(playerId);
+    }
+
+    @Override
+    public void onEvent(@Nonnull GenericEvent genericEvent) {
+        // apparently required for EventListener implementations... also apparantly the guild member role add event
+        // never got called?
+        if (genericEvent instanceof GuildMemberRoleAddEvent) {
+            onGuildMemberRoleAdd((GuildMemberRoleAddEvent) genericEvent);
+        }
     }
 }

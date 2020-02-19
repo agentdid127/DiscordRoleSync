@@ -3,41 +3,39 @@ package dev.tycho.DiscordRoleSync;
 import co.aikar.taskchain.BukkitTaskChainFactory;
 import co.aikar.taskchain.TaskChain;
 import co.aikar.taskchain.TaskChainFactory;
-import com.j256.ormlite.dao.Dao;
-import com.j256.ormlite.dao.DaoManager;
-import com.j256.ormlite.jdbc.JdbcPooledConnectionSource;
-import com.j256.ormlite.logger.LocalLog;
-import com.j256.ormlite.support.ConnectionSource;
-import com.j256.ormlite.table.TableUtils;
-import dev.tycho.DiscordRoleSync.command.CommandDc;
-import dev.tycho.DiscordRoleSync.database.Link;
-import dev.tycho.DiscordRoleSync.listener.messageListener;
-
+import dev.tycho.DiscordRoleSync.listener.AccountLinkedListener;
+import dev.tycho.DiscordRoleSync.listener.PlayerJoinedListener;
+import dev.tycho.DiscordRoleSync.listener.RoleChangeListener;
 import github.scarsz.discordsrv.DiscordSRV;
 import github.scarsz.discordsrv.dependencies.jda.api.JDA;
+import github.scarsz.discordsrv.dependencies.jda.api.entities.Guild;
+import github.scarsz.discordsrv.dependencies.jda.api.entities.Member;
+import github.scarsz.discordsrv.dependencies.jda.api.entities.Role;
 import net.luckperms.api.LuckPerms;
+import net.luckperms.api.model.user.User;
+import net.luckperms.api.node.Node;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
+import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.entity.Player;
 import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import javax.security.auth.login.LoginException;
-import java.sql.SQLException;
+import java.util.Collection;
 import java.util.HashMap;
-import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 
 public class DiscordRoleSync extends JavaPlugin {
 
     public static LuckPerms permsApi;
     public static JDA jda;
-    static List<String> roles;
+    private static ConfigurationSection roles;
 
     private static TaskChainFactory taskChainFactory;
     public static <T> TaskChain<T> newChain() {
         return taskChainFactory.newChain();
     }
-
-    public static Dao<Link, Integer> linkDao;
 
     public static HashMap<String, UUID> linkQueue = new HashMap<>();
 
@@ -46,37 +44,14 @@ public class DiscordRoleSync extends JavaPlugin {
         taskChainFactory = BukkitTaskChainFactory.create(this);
         this.saveDefaultConfig();
 
-        System.setProperty(LocalLog.LOCAL_LOG_LEVEL_PROPERTY, "ERROR");
-
-        String host = getConfig().getString("mysql.host");
-        String port = getConfig().getString("mysql.port");
-        String database = getConfig().getString("mysql.database");
-        String username = getConfig().getString("mysql.username");
-        String password = getConfig().getString("mysql.password");
-        String useSsl = getConfig().getString("mysql.ssl");
-
-        String databaseUrl = "jdbc:mysql://" + host + ":" + port + "/" + database + "?useUnicode=true&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=GMT&useSSL=" + useSsl;
-
-        try {
-            ConnectionSource connectionSource = new JdbcPooledConnectionSource(databaseUrl, username, password);
-
-            linkDao = DaoManager.createDao(connectionSource, Link.class);
-            TableUtils.createTableIfNotExists(connectionSource, Link.class);
-
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-
-        roles = getConfig().getStringList("roles");
-
+        roles = getConfig().getConfigurationSection("roles");
         RegisteredServiceProvider<LuckPerms> provider = Bukkit.getServicesManager().getRegistration(LuckPerms.class);
         if (provider != null) {
             permsApi = provider.getProvider();
 
         }
-
         checkForJda();
-        this.getCommand("dc").setExecutor(new CommandDc(this));
+        DiscordSRV.api.subscribe(new AccountLinkedListener(this));
     }
 
     // Run once a second to wait for DiscordSRV to be ready so we can grab an instance from it.
@@ -91,7 +66,49 @@ public class DiscordRoleSync extends JavaPlugin {
             Bukkit.getScheduler().runTaskLater(this, this::checkForJda, 20);
             return;
         }
-        jda.addEventListener(new messageListener(this));
+        jda.addEventListener(new RoleChangeListener(this));
+        getServer().getPluginManager().registerEvents(new PlayerJoinedListener(this), this);
+        getLogger().info("DiscordRoleSync ready!");
+    }
+
+    public void syncRoles() {
+        Collection<? extends Player> players = getServer().getOnlinePlayers();
+        for (Player player : players) syncRoles(player.getUniqueId());
+    }
+
+    public void syncRoles(UUID playerId) {
+        syncRoles(Objects.requireNonNull(getServer().getPlayer(playerId)));
+    }
+
+    public void syncRoles(Player player) {
+        String discordId = DiscordSRV.getPlugin().getAccountLinkManager().getDiscordId(player.getUniqueId());
+        if (discordId == null) {
+            getLogger().info("User " + player.getUniqueId() + " not linked! Skipping..");
+            return;
+        }
+        User user = permsApi.getUserManager().getUser(player.getUniqueId());
+        Guild guild = jda.getGuildById(Objects.requireNonNull(getConfig().getString("primaryServerId")));
+        Member guildMember = Objects.requireNonNull(guild).getMemberById(discordId);
+        for (Role role : Objects.requireNonNull(guildMember).getRoles()) {
+            if (!roles.isSet(role.getId())) {
+                getLogger().info("Role " + role.getName() + " has no assigned group - skipping");
+                continue;
+            }
+            String groupName = roles.getString(role.getId());
+            String groupPermission = "group." + groupName;
+            if (player.hasPermission(groupPermission)) {
+                getLogger().info("User already has group " + groupName + " for role " + role.getName() + " - skipping");
+                continue;
+            }
+            Node groupNode = Node.builder(groupPermission).build();
+            user.data().add(groupNode);
+            permsApi.getUserManager().saveUser(user);
+            getLogger().info("Adding permissions group " + groupName + " to " + player.getName() +
+                    " for discord role " + role.getName());
+            player.sendMessage(ChatColor.GREEN + "[DiscordRoleSync] You are now a member of the " +
+                    ChatColor.BLUE + groupName + ChatColor.GREEN + " group for being in the discord role " +
+                    ChatColor.BLUE + role.getName());
+        }
     }
 
     @Override

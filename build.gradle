@@ -23,12 +23,6 @@ dependencies {
     compileOnly "org.spigotmc:spigot-api:1.15.2-R0.1-SNAPSHOT"
     compile 'co.aikar:taskchain-bukkit:3.7.2'
     compile 'net.luckperms:api:5.0'
-//    compile ('net.dv8tion:JDA:4.0.0_54') {
-//        exclude module: 'opus-java'
-//    }
-    compile 'com.fasterxml.jackson.core:jackson-databind:2.10.0'
-    compile "com.j256.ormlite:ormlite-core:5.1"
-    compile "com.j256.ormlite:ormlite-jdbc:5.1"
     compile "com.discordsrv:discordsrv:1.18.4"
 }
 
