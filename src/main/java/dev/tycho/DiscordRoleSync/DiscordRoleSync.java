@@ -3,7 +3,7 @@ package dev.tycho.DiscordRoleSync;
 import co.aikar.taskchain.BukkitTaskChainFactory;
 import co.aikar.taskchain.TaskChain;
 import co.aikar.taskchain.TaskChainFactory;
-import dev.tycho.DiscordRoleSync.listener.AccountLinkedListener;
+import dev.tycho.DiscordRoleSync.listener.AccountLinkingListener;
 import dev.tycho.DiscordRoleSync.listener.PlayerJoinedListener;
 import dev.tycho.DiscordRoleSync.listener.RoleChangeListener;
 import github.scarsz.discordsrv.DiscordSRV;
@@ -30,7 +30,7 @@ public class DiscordRoleSync extends JavaPlugin {
 
     public static LuckPerms permsApi;
     public static JDA jda;
-    private static ConfigurationSection roles;
+    public static ConfigurationSection roles;
 
     private static TaskChainFactory taskChainFactory;
     public static <T> TaskChain<T> newChain() {
@@ -51,7 +51,7 @@ public class DiscordRoleSync extends JavaPlugin {
 
         }
         checkForJda();
-        DiscordSRV.api.subscribe(new AccountLinkedListener(this));
+        DiscordSRV.api.subscribe(new AccountLinkingListener(this));
     }
 
     // Run once a second to wait for DiscordSRV to be ready so we can grab an instance from it.

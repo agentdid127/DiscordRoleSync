@@ -2,3 +2,5 @@ primaryServerId: MAIN_SERVER_ID_HERE
 roles:
   # roleId: groupName
   0: member
+# Group to add a player to once they get unlinked
+unlinkedGroupName: unlinked
