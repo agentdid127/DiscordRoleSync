@@ -23,7 +23,7 @@ dependencies {
     compileOnly "org.spigotmc:spigot-api:1.15.2-R0.1-SNAPSHOT"
     compile 'co.aikar:taskchain-bukkit:3.7.2'
     compile 'net.luckperms:api:5.0'
-    compile "com.discordsrv:discordsrv:1.18.4"
+    compileOnly "com.discordsrv:discordsrv:1.18.4"
 }
 
 compileJava.options.encoding = 'UTF-8'
