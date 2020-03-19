@@ -1,0 +1,6 @@
+name: DiscordRoleSync
+version: 1
+main: dev.tycho.DiscordRoleSync.DiscordRoleSync
+depend: [LuckPerms, DiscordSRV]
+author: test
+api-version: 1.14

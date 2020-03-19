@@ -15,7 +15,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static org.graalvm.compiler.options.OptionType.User;
+
 
 public class AccountLinkingListener {
     private DiscordRoleSync plugin;

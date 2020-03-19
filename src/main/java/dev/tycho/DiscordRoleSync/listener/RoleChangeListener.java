@@ -2,10 +2,12 @@ package dev.tycho.DiscordRoleSync.listener;
 
 import dev.tycho.DiscordRoleSync.DiscordRoleSync;
 import github.scarsz.discordsrv.DiscordSRV;
+import github.scarsz.discordsrv.dependencies.jda.api.events.Event;
 import github.scarsz.discordsrv.dependencies.jda.api.events.GenericEvent;
+import github.scarsz.discordsrv.dependencies.jda.api.events.guild.member.GuildMemberRoleRemoveEvent;
 import github.scarsz.discordsrv.dependencies.jda.api.hooks.EventListener;
-import net.dv8tion.jda.api.events.guild.member.GuildMemberRoleAddEvent;
-import net.dv8tion.jda.api.hooks.ListenerAdapter;
+import github.scarsz.discordsrv.dependencies.jda.api.events.guild.member.GuildMemberRoleAddEvent;
+import github.scarsz.discordsrv.dependencies.jda.api.hooks.ListenerAdapter;
 import org.bukkit.entity.Player;
 
 import javax.annotation.Nonnull;
@@ -28,12 +30,14 @@ public class RoleChangeListener extends ListenerAdapter implements EventListener
         plugin.syncRoles(playerId);
     }
 
-    @Override
-    public void onEvent(@Nonnull GenericEvent genericEvent) {
-        // apparently required for EventListener implementations... also apparantly the guild member role add event
-        // never got called?
-        if (genericEvent instanceof GuildMemberRoleAddEvent) {
-            onGuildMemberRoleAdd((GuildMemberRoleAddEvent) genericEvent);
-        }
-    }
+@Override
+    public void onGuildMemberRoleRemove(@Nonnull GuildMemberRoleRemoveEvent event) {
+    plugin.getLogger().info("Guild member " + event.getMember().getUser().getName() + " got " +
+            "a role update - resyncing groups...");
+    UUID playerId = DiscordSRV.getPlugin()
+            .getAccountLinkManager()
+            .getUuid(event.getMember().getId());
+    plugin.unsyncRoles(playerId);
+}
+
 }

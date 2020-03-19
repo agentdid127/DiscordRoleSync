@@ -14,6 +14,8 @@ import github.scarsz.discordsrv.dependencies.jda.api.entities.Role;
 import net.luckperms.api.LuckPerms;
 import net.luckperms.api.model.user.User;
 import net.luckperms.api.node.Node;
+import net.luckperms.api.node.NodeType;
+import net.luckperms.api.node.types.InheritanceNode;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.configuration.ConfigurationSection;
@@ -21,10 +23,8 @@ import org.bukkit.entity.Player;
 import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Objects;
-import java.util.UUID;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class DiscordRoleSync extends JavaPlugin {
 
@@ -76,6 +76,30 @@ public class DiscordRoleSync extends JavaPlugin {
         for (Player player : players) syncRoles(player.getUniqueId());
     }
 
+
+    public void unsyncRoles(UUID playerId) {
+        unsyncRoles(Objects.requireNonNull(getServer().getPlayer(playerId)));
+    }
+
+    public void unsyncRoles(Player player) {
+        DiscordRoleSync.permsApi.getUserManager().loadUser(player.getUniqueId())
+                .thenAcceptAsync(user -> {
+                    Set<String> groups = user.getNodes().stream()
+                            .filter(NodeType.INHERITANCE::matches)
+                            .map(NodeType.INHERITANCE::cast)
+                            .map(InheritanceNode::getGroupName)
+                            .collect(Collectors.toSet());
+                    for (Object groupNameObj : DiscordRoleSync.roles.getValues(false).values()) {
+                        String groupName = (String) groupNameObj;
+                        if (groups.contains(groupName)) {
+
+
+                            user.data().remove(Node.builder("group." + groupName).build());
+                        }
+                    }
+                }).thenRunAsync(this::syncRoles);
+    }
+
     public void syncRoles(UUID playerId) {
         syncRoles(Objects.requireNonNull(getServer().getPlayer(playerId)));
     }
@@ -95,23 +119,18 @@ public class DiscordRoleSync extends JavaPlugin {
                 continue;
             }
             String groupName = roles.getString(role.getId());
+            getLogger().info("Group: " + groupName);
             String groupPermission = "group." + groupName;
-            if (player.hasPermission(groupPermission)) {
+            /*if (player.hasPermission(groupPermission)) {
                 getLogger().info("User already has group " + groupName + " for role " + role.getName() + " - skipping");
                 continue;
-            }
+            }*/
             Node groupNode = Node.builder(groupPermission).build();
             user.data().add(groupNode);
             permsApi.getUserManager().saveUser(user);
-            getLogger().info("Adding permissions group " + groupName + " to " + player.getName() +
-                    " for discord role " + role.getName());
-            player.sendMessage(ChatColor.GREEN + "[DiscordRoleSync] You are now a member of the " +
-                    ChatColor.BLUE + groupName + ChatColor.GREEN + " group for being in the discord role " +
-                    ChatColor.BLUE + role.getName());
         }
     }
-
-    @Override
+@Override
     public void onDisable() {
 
     }
